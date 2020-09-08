@@ -1,17 +1,17 @@
 import React, { createContext, useReducer, FC, useContext } from 'react'
 
-type State = { [name: string]: any }
-type Action = { type: 'update', payload: { name: string, value: any } }
-type Dispatch = (action: Action) => void
+export type ModifierState = { [name: string]: any }
+export type ModifierAction = { type: 'update', payload: { name: string, value: any } }
+export type ModifierDispatch = (action: ModifierAction) => void
 
-const ModifierStateContext = createContext<State | undefined>(undefined)
-const ModifierDispatchContext = createContext<Dispatch | undefined>(undefined)
+const ModifierStateContext = createContext<ModifierState | undefined>(undefined)
+const ModifierDispatchContext = createContext<ModifierDispatch | undefined>(undefined)
 
-const modifierReducer = (state: State, action: Action) => {
+const modifierReducer = (state: ModifierState, action: ModifierAction) => {
   switch (action.type) {
     case 'update': {
       const { name, value } = action.payload
-      return { [name]: value }
+      return { ...state, [name]: value }
     }
     default: {
       throw new Error(`Unhandled action type: ${action.type}`)

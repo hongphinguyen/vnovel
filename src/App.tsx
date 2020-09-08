@@ -2,7 +2,7 @@ import React, { FC, useState } from 'react'
 import './App.css'
 import ExampleScript from './scripts/example'
 import { Script, Choice } from './scripts/tools'
-import { ModifierProvider } from './contexts/modifier-context'
+import { ModifierProvider, useModifierState, useModifierDispatch } from './contexts/modifier-context'
 
 interface ScriptSet {
   script: Script
@@ -18,18 +18,49 @@ interface Props {
   initialLineNumber?: number
 }
 
+const forecastTypes = ['modification']
+
 const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initialLineNumber = 0 }) => {
   const [scriptSet, setScriptSet] = useState<ScriptSet>(initialScriptSet)
   const [scriptPosition, setScriptPosition] = useState(initialScriptPosition)
   const [lineNumber, setLineNumber] = useState(initialLineNumber)
+  const modifierState = useModifierState()
+  const modifierDispatch = useModifierDispatch()
 
   const current = scriptSet.script[scriptPosition]
 
   const handleNext = () => {
-    /* Recursively get out of roadblocks at the end of a script. This means that when you reach a roadblock
-    * on a child script, when you go up one level and the next script position is also a roadblock, the code
-    * will keep on going up to a fork level where you can proceed the script.
-    */
+    let skipForecastNumber = 1
+    let currentForecastIndex = scriptPosition + 1
+
+    /** Recursively forecast special fragments, process them immediately and skip to the next dialogue or choice. */
+    while (true) {
+      const forecastedFragment = scriptSet.script[currentForecastIndex]
+      
+      if (!forecastedFragment || !forecastTypes.includes(forecastedFragment.type)) {
+        break
+      }
+
+      if (forecastedFragment.type === 'modification') {
+        forecastedFragment.data.forEach(({ name, value }) => {
+          modifierDispatch({
+            type: 'update',
+            payload: {
+              name,
+              value: value(modifierState)
+            }
+          })
+        })
+      }
+      
+      skipForecastNumber++
+      currentForecastIndex++
+    }
+
+    /** Recursively get out of roadblocks at the end of a script. This means that when you reach a roadblock
+     * on a child script, when you go up one level and the next script position is also a roadblock, the code
+     * will keep on going up to a fork level where you can proceed the script.
+     */
     if (scriptSet.script.length - 1 === scriptPosition) {
       let newScriptSet = scriptSet.parentScriptSet
       while (true) {
@@ -45,7 +76,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
           newScriptSet = newScriptSet.scriptSet.parentScriptSet
         } else {
           setScriptSet(newScriptSet.scriptSet)
-          setScriptPosition(newScriptSet.lastPosition + 1)
+          setScriptPosition(newScriptSet.lastPosition + skipForecastNumber)
           break
         }
       }
@@ -56,7 +87,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
         setLineNumber(lineNumber + 1)
       } else {
         setLineNumber(0)
-        setScriptPosition(scriptPosition + 1)
+        setScriptPosition(scriptPosition + skipForecastNumber)
       }
     }
   }
@@ -74,24 +105,37 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
 
   return (
     <div className="App">
-      {current.type === 'dialogue' && (
-        <div>
-          <div className="Speaker">
-            <h1>{current.data.speaker}</h1>
+      <div className="Novel">
+        {current.type === 'dialogue' && (
+          <div>
+            <div className="Speaker">
+              <h1>{current.data.speaker}</h1>
+            </div>
+            <p>{current.data.lines[lineNumber]}</p>
+            <button onClick={handleNext}>Next</button>
           </div>
-          <p>{current.data.lines[lineNumber]}</p>
-          <button onClick={handleNext}>Next</button>
-        </div>
-      )}
-      {current.type === 'fork' && (
+        )}
+        {current.type === 'fork' && (
+          <div>
+            {current.data.map((choice) => (
+              <button
+                onClick={() => handleChoiceButton(choice)}
+                key={choice.label}
+              >
+                {choice.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {Object.keys(modifierState).length > 0 && (
         <div>
-          {current.data.map((choice) => (
-            <button
-              onClick={() => handleChoiceButton(choice)}
-              key={choice.label}
-            >
-              {choice.label}
-            </button>
+          <h3>Modifier</h3>
+          {Object.entries(modifierState).map(([key, value]) => (
+            <p>
+              <strong>{key}</strong>: {value}
+            </p>
           ))}
         </div>
       )}

@@ -1,3 +1,5 @@
+import { ModifierState } from "../contexts/modifier-context"
+
 export interface Dialogue {
   type: 'dialogue',
   data: {
@@ -16,9 +18,21 @@ export interface TemporalBranch {
   data: Choice[]
 }
 
-export type Fragment = Dialogue | TemporalBranch
+
+export interface ModificationData {
+  name: string
+  value: (state: ModifierState) => any
+}
+
+export type Modification = {
+  type: 'modification',
+  data: ModificationData[]
+}
+
+export type Fragment = Dialogue | TemporalBranch | Modification
 
 export type Script = Fragment[]
+
 
 export const dialogue = (speaker: string, lineOrLines: string | string[]): Dialogue => ({
   type: 'dialogue',
@@ -38,4 +52,9 @@ export const fork = (choices: Choice[]): TemporalBranch => ({
 export const choice = (label: string, outcome: any[]): Choice => ({
   label,
   outcome
+})
+
+export const modify = (datumOrData: ModificationData | ModificationData[]): Modification => ({
+  type: 'modification',
+  data: Array.isArray(datumOrData) ? datumOrData : [datumOrData]
 })
