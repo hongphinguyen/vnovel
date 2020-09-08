@@ -1,6 +1,8 @@
 import React, { FC, useState } from 'react'
 import './App.css'
-import ExampleScript, { Choice, Script } from './scripts/example'
+import ExampleScript from './scripts/example'
+import { Script, Choice } from './scripts/tools'
+import { ModifierProvider } from './contexts/modifier-context'
 
 interface ScriptSet {
   script: Script
@@ -98,5 +100,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
 }
 
 export default () => (
-  <Novel initialScriptSet={{ script: ExampleScript }} />
+  <ModifierProvider>
+    <Novel initialScriptSet={{ script: ExampleScript }} />
+  </ModifierProvider>
 )
