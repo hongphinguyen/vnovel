@@ -12,30 +12,14 @@ const script: Script = [
       fork([
         choice(`Samurai Sword`, [
           dialogue(`Shopkeeper`, `Here you go.`),
-          modify([
-            {
-              name: 'power',
-              value: state => state.power ? state.power + 5 : 5,
-            },
-            {
-              name: 'speed',
-              value: state => state.speed ? state.speed + 8 : 8,
-            }
-          ]),
+          modify('power', state => state.power ? state.power + 5 : 5),
+          modify('speed', state => state.speed ? state.speed + 8 : 8),
           narrate(`He gave me the Samurai Sword.`)
         ]),
         choice(`Chainsaw`, [
           dialogue(`Shopkeeper`, `Here you go.`),
-          modify([
-            {
-              name: 'power',
-              value: state => state.power ? state.power + 8 : 8
-            },
-            {
-              name: 'speed',
-              value: state => state.speed ? state.speed + 5 : 5
-            }
-          ]),
+          modify('power', state => state.power ? state.power + 8 : 8),
+          modify('speed', state => state.speed ? state.speed + 5 : 5),
           narrate(`He gave me the Chainsaw.`)
         ]),
       ])

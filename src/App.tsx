@@ -1,7 +1,7 @@
 import React, { FC, useState } from 'react'
 import './App.css'
 import ExampleScript from './scripts/example'
-import { Script, Choice } from './scripts/tools'
+import { Script, Choice, Type } from './scripts/tools'
 import { ModifierProvider, useModifierState, useModifierDispatch } from './contexts/modifier-context'
 
 interface ScriptSet {
@@ -18,7 +18,7 @@ interface Props {
   initialLineNumber?: number
 }
 
-const forecastTypes = ['modification']
+const forecastTypes = [Type.Modification]
 
 const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initialLineNumber = 0 }) => {
   const [scriptSet, setScriptSet] = useState<ScriptSet>(initialScriptSet)
@@ -41,15 +41,14 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
         break
       }
 
-      if (forecastedFragment.type === 'modification') {
-        forecastedFragment.data.forEach(({ name, value }) => {
-          modifierDispatch({
-            type: 'update',
-            payload: {
-              name,
-              value: value(modifierState)
-            }
-          })
+      if (forecastedFragment.type === Type.Modification) {
+        const [name, value] = forecastedFragment.data
+        modifierDispatch({
+          type: 'update',
+          payload: {
+            name,
+            value: value(modifierState)
+          }
         })
       }
       
@@ -82,7 +81,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
       }
     }
     
-    else if (current.type === 'dialogue') {
+    else if (current.type === Type.Dialogue) {
       if (current.data.lines.length - 1 > lineNumber) {
         setLineNumber(lineNumber + 1)
       } else {
@@ -106,7 +105,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
   return (
     <div className="App">
       <div className="Novel">
-        {current.type === 'dialogue' && (
+        {current.type === Type.Dialogue && (
           <div>
             <div className="Speaker">
               <h1>{current.data.speaker}</h1>
@@ -115,7 +114,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
             <button onClick={handleNext}>Next</button>
           </div>
         )}
-        {current.type === 'fork' && (
+        {current.type === Type.Fork && (
           <div>
             {current.data.map((choice) => (
               <button
