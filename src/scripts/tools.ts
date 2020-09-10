@@ -3,7 +3,8 @@ import { ModifierState } from "../contexts/modifier-context"
 export enum Type {
   Dialogue,
   Fork,
-  Modification
+  Modification,
+  Backdrop
 }
 
 export interface Dialogue {
@@ -35,7 +36,12 @@ export type Modification = {
   data: ModificationData
 }
 
-export type Fragment = Dialogue | TemporalBranch | Modification
+export type Backdrop = {
+  type: Type.Backdrop,
+  data: string
+}
+
+export type Fragment = Dialogue | TemporalBranch | Modification | Backdrop
 
 export type Script = Fragment[]
 
@@ -63,4 +69,9 @@ export const choice = (label: string, outcome: any[]): Choice => ({
 export const modify = (...data: ModificationData): Modification => ({
   type: Type.Modification,
   data
+})
+
+export const backdrop = (image: any): Backdrop => ({
+  type: Type.Backdrop,
+  data: image
 })

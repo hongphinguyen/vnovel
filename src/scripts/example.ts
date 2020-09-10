@@ -1,6 +1,8 @@
-import { dialogue, narrate, fork, choice, Script, modify } from './tools'
+import { dialogue, narrate, fork, choice, Script, modify, backdrop } from './tools'
+import testBackdrop from '../assets/800-screen-04.jpg'
 
 const script: Script = [
+  backdrop(testBackdrop),
   dialogue(`Shopkeeper`, [
     `If you win this coinflip, you can take home any item on the shelf.`,
     `Heads or tail?`

@@ -1,8 +1,8 @@
-import React, { FC, useState } from 'react'
-import './App.css'
+import React, { FC, useState, useEffect } from 'react'
 import ExampleScript from './scripts/example'
 import { Script, Choice, Type } from './scripts/tools'
 import { ModifierProvider, useModifierState, useModifierDispatch } from './contexts/modifier-context'
+import * as SC from './App.styled'
 
 interface ScriptSet {
   script: Script
@@ -18,7 +18,7 @@ interface Props {
   initialLineNumber?: number
 }
 
-const forecastTypes = [Type.Modification]
+const forecastTypes = [Type.Modification, Type.Backdrop]
 
 const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initialLineNumber = 0 }) => {
   const [scriptSet, setScriptSet] = useState<ScriptSet>(initialScriptSet)
@@ -26,23 +26,20 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
   const [lineNumber, setLineNumber] = useState(initialLineNumber)
   const modifierState = useModifierState()
   const modifierDispatch = useModifierDispatch()
+  const [backdrop, setBackdrop] = useState<undefined | string>()
 
   const current = scriptSet.script[scriptPosition]
 
-  const handleNext = () => {
-    let skipForecastNumber = 1
-    let currentForecastIndex = scriptPosition + 1
+  useEffect(() => {
+    const currentFragment = scriptSet.script[scriptPosition]
 
-    /** Recursively forecast special fragments, process them immediately and skip to the next dialogue or choice. */
-    while (true) {
-      const forecastedFragment = scriptSet.script[currentForecastIndex]
-      
-      if (!forecastedFragment || !forecastTypes.includes(forecastedFragment.type)) {
-        break
-      }
+    if (!currentFragment || !forecastTypes.includes(currentFragment.type)) {
+      return
+    }
 
-      if (forecastedFragment.type === Type.Modification) {
-        const [name, value] = forecastedFragment.data
+    switch (currentFragment.type) {
+      case (Type.Modification): {
+        const [name, value] = currentFragment.data
         modifierDispatch({
           type: 'update',
           payload: {
@@ -50,12 +47,19 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
             value: value(modifierState)
           }
         })
+        break
       }
-      
-      skipForecastNumber++
-      currentForecastIndex++
+
+      case (Type.Backdrop): {
+        setBackdrop(currentFragment.data)
+        break
+      }
     }
 
+    setScriptPosition(position => position + 1)
+  }, [scriptPosition])
+
+  const handleNext = () => {
     /** Recursively get out of roadblocks at the end of a script. This means that when you reach a roadblock
      * on a child script, when you go up one level and the next script position is also a roadblock, the code
      * will keep on going up to a fork level where you can proceed the script.
@@ -75,7 +79,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
           newScriptSet = newScriptSet.scriptSet.parentScriptSet
         } else {
           setScriptSet(newScriptSet.scriptSet)
-          setScriptPosition(newScriptSet.lastPosition + skipForecastNumber)
+          setScriptPosition(newScriptSet.lastPosition + 1)
           break
         }
       }
@@ -86,7 +90,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
         setLineNumber(lineNumber + 1)
       } else {
         setLineNumber(0)
-        setScriptPosition(scriptPosition + skipForecastNumber)
+        setScriptPosition(scriptPosition + 1)
       }
     }
   }
@@ -103,42 +107,41 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
   }
 
   return (
-    <div className="App">
-      <div className="Novel">
+    <SC.App backdrop={backdrop}>
+      <SC.Novel>
         {current.type === Type.Dialogue && (
-          <div>
-            <div className="Speaker">
-              <h1>{current.data.speaker}</h1>
-            </div>
-            <p>{current.data.lines[lineNumber]}</p>
-            <button onClick={handleNext}>Next</button>
-          </div>
+          <SC.DialogueBox onClick={handleNext}>
+            {current.data.speaker && <SC.Caption>{current.data.speaker}</SC.Caption>}
+            <span>{current.data.lines[lineNumber]}</span>
+          </SC.DialogueBox>
         )}
         {current.type === Type.Fork && (
-          <div>
-            {current.data.map((choice) => (
-              <button
-                onClick={() => handleChoiceButton(choice)}
-                key={choice.label}
-              >
-                {choice.label}
-              </button>
-            ))}
-          </div>
+          <SC.ForkOverlay>
+            <SC.ForkDialogue>
+              {current.data.map((choice) => (
+                <button
+                  onClick={() => handleChoiceButton(choice)}
+                  key={choice.label}
+                >
+                  {choice.label}
+                </button>
+              ))}
+            </SC.ForkDialogue>
+          </SC.ForkOverlay>
         )}
-      </div>
+      </SC.Novel>
 
       {Object.keys(modifierState).length > 0 && (
-        <div>
-          <h3>Modifier</h3>
+        <SC.Modifiers>
+          <SC.Caption>Modifier</SC.Caption>
           {Object.entries(modifierState).map(([key, value]) => (
-            <p>
+            <span>
               <strong>{key}</strong>: {value}
-            </p>
+            </span>
           ))}
-        </div>
+        </SC.Modifiers>
       )}
-    </div>
+    </SC.App>
   )
 }
 
