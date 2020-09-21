@@ -20,9 +20,14 @@ export interface Choice {
   outcome: Script
 }
 
+export interface ForkOptions {
+  caption: string
+}
+
 export interface TemporalBranch {
   type: Type.Fork,
-  data: Choice[]
+  data: Choice[],
+  options: ForkOptions
 }
 
 
@@ -31,13 +36,13 @@ export type ModificationData = [
   (state: ModifierState) => any
 ]
 
-export type Modification = {
-  type: Type.Modification,
+export interface Modification {
+  type: Type.Modification
   data: ModificationData
 }
 
-export type Backdrop = {
-  type: Type.Backdrop,
+export interface Backdrop {
+  type: Type.Backdrop
   data: string
 }
 
@@ -56,9 +61,13 @@ export const dialogue = (speaker: string, lineOrLines: string | string[]): Dialo
 
 export const narrate = (lineOrLines: string | string[]) => dialogue('', lineOrLines)
 
-export const fork = (choices: Choice[]): TemporalBranch => ({
+export const fork = (caption: string, choices: Choice[], options?: ForkOptions): TemporalBranch => ({
   type: Type.Fork,
-  data: choices
+  data: choices,
+  options: {
+    caption,
+    ...options
+  }
 })
 
 export const choice = (label: string, outcome: any[]): Choice => ({
@@ -66,7 +75,7 @@ export const choice = (label: string, outcome: any[]): Choice => ({
   outcome
 })
 
-export const modify = (...data: ModificationData): Modification => ({
+export const modifier = (...data: ModificationData): Modification => ({
   type: Type.Modification,
   data
 })

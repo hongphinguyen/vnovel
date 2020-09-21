@@ -18,8 +18,6 @@ interface Props {
   initialLineNumber?: number
 }
 
-const forecastTypes = [Type.Modification, Type.Backdrop]
-
 const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initialLineNumber = 0 }) => {
   const [scriptSet, setScriptSet] = useState<ScriptSet>(initialScriptSet)
   const [scriptPosition, setScriptPosition] = useState(initialScriptPosition)
@@ -30,40 +28,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
 
   const current = scriptSet.script[scriptPosition]
 
-  useEffect(() => {
-    const currentFragment = scriptSet.script[scriptPosition]
-
-    if (!currentFragment || !forecastTypes.includes(currentFragment.type)) {
-      return
-    }
-
-    switch (currentFragment.type) {
-      case (Type.Modification): {
-        const [name, value] = currentFragment.data
-        modifierDispatch({
-          type: 'update',
-          payload: {
-            name,
-            value: value(modifierState)
-          }
-        })
-        break
-      }
-
-      case (Type.Backdrop): {
-        setBackdrop(currentFragment.data)
-        break
-      }
-    }
-
-    setScriptPosition(position => position + 1)
-  }, [scriptPosition])
-
-  const handleNext = () => {
-    /** Recursively get out of roadblocks at the end of a script. This means that when you reach a roadblock
-     * on a child script, when you go up one level and the next script position is also a roadblock, the code
-     * will keep on going up to a fork level where you can proceed the script.
-     */
+  const proceed = () => {
     if (scriptSet.script.length - 1 === scriptPosition) {
       let newScriptSet = scriptSet.parentScriptSet
       while (true) {
@@ -72,9 +37,8 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
             `DEVELOPER WARNING: You have reached a roadblock. ` +
             `You can fix this problem by adding a meaningful resolution to the end of this script (or subscript).`
           )
-          return
+          break
         }
-
         if (newScriptSet.scriptSet.script.length - 1 === newScriptSet.lastPosition) {
           newScriptSet = newScriptSet.scriptSet.parentScriptSet
         } else {
@@ -83,15 +47,45 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
           break
         }
       }
+    } else {
+      setScriptPosition(scriptPosition + 1)
     }
-    
-    else if (current.type === Type.Dialogue) {
-      if (current.data.lines.length - 1 > lineNumber) {
-        setLineNumber(lineNumber + 1)
-      } else {
-        setLineNumber(0)
-        setScriptPosition(scriptPosition + 1)
+  }
+
+  useEffect(() => {
+    switch (current.type) {
+      default: return
+      case (Type.Modification): {
+        const [name, value] = current.data
+        modifierDispatch({
+          type: 'update',
+          payload: {
+            name,
+            value: value(modifierState)
+          }
+        })
+        proceed()
+        break
       }
+      case (Type.Backdrop): {
+        setBackdrop(current.data)
+        proceed()
+        break
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scriptPosition])
+
+  const handleNext = () => {
+    if (current.type !== Type.Dialogue) {
+      return
+    }
+
+    if (current.data.lines.length - 1 > lineNumber) {
+      setLineNumber(lineNumber + 1)
+    } else {
+      setLineNumber(0)
+      proceed()
     }
   }
 
@@ -118,6 +112,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
         {current.type === Type.Fork && (
           <SC.ForkOverlay>
             <SC.ForkDialogue>
+              {current.options.caption && <SC.Caption>{current.options.caption}</SC.Caption>}
               {current.data.map((choice) => (
                 <button
                   onClick={() => handleChoiceButton(choice)}

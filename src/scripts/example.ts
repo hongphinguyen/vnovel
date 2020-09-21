@@ -1,4 +1,4 @@
-import { dialogue, narrate, fork, choice, Script, modify, backdrop } from './tools'
+import { dialogue, narrate, fork, choice, Script, modifier, backdrop } from './tools'
 import testBackdrop from '../assets/800-screen-04.jpg'
 
 const script: Script = [
@@ -8,25 +8,25 @@ const script: Script = [
     `Heads or tail?`
   ]),
   narrate(`Here I go then.`),
-  fork([
-    choice(`Heads`, [
+  fork(`Head or tail?`, [
+    choice(`Head`, [
       dialogue(`Shopkeeper`, `Good guess, kid. What do you want to take?`),
-      fork([
+      fork(`Which weapon suits me more?`, [
         choice(`Samurai Sword`, [
           dialogue(`Shopkeeper`, `Here you go.`),
-          modify('power', state => state.power ? state.power + 5 : 5),
-          modify('speed', state => state.speed ? state.speed + 8 : 8),
+          modifier('power', state => state.power ? state.power + 5 : 5),
+          modifier('speed', state => state.speed ? state.speed + 8 : 8),
           narrate(`He gave me the Samurai Sword.`)
         ]),
         choice(`Chainsaw`, [
           dialogue(`Shopkeeper`, `Here you go.`),
-          modify('power', state => state.power ? state.power + 8 : 8),
-          modify('speed', state => state.speed ? state.speed + 5 : 5),
+          modifier('power', state => state.power ? state.power + 8 : 8),
+          modifier('speed', state => state.speed ? state.speed + 5 : 5),
           narrate(`He gave me the Chainsaw.`)
         ]),
       ])
     ]),
-    choice(`Tails`, [
+    choice(`Tail`, [
       dialogue(`Shopkeeper`, `Too bad, kid. Better luck next time.`)
     ])
   ]),
