@@ -3,6 +3,7 @@ import ExampleScript from './scripts/example'
 import { Script, Choice, Type } from './scripts/tools'
 import { ModifierProvider, useModifierState, useModifierDispatch } from './contexts/modifier-context'
 import * as SC from './App.styled'
+import { glossary } from './scripts/glossary/glossary'
 
 interface ScriptSet {
   script: Script
@@ -25,6 +26,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
   const modifierState = useModifierState()
   const modifierDispatch = useModifierDispatch()
   const [backdrop, setBackdrop] = useState<undefined | string>()
+  const [showGlossary, setShowGlossary] = useState(false)
 
   const current = scriptSet.script[scriptPosition]
 
@@ -125,6 +127,12 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
           </SC.ForkOverlay>
         )}
       </SC.Novel>
+
+      {showGlossary && (
+        <SC.DialogueBox>
+          {JSON.stringify(glossary())}
+        </SC.DialogueBox>
+      )}
 
       {Object.keys(modifierState).length > 0 && (
         <SC.Modifiers>
