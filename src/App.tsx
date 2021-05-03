@@ -3,7 +3,7 @@ import ExampleScript from './scripts/example'
 import { Script, Choice, Type } from './scripts/tools'
 import { ModifierProvider, useModifierState, useModifierDispatch } from './contexts/modifier-context'
 import * as SC from './App.styled'
-import { glossary } from './scripts/glossary/glossary'
+import { Glossary } from './Glossary'
 
 interface ScriptSet {
   script: Script
@@ -104,6 +104,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
 
   return (
     <SC.App backdrop={backdrop}>
+      <SC.GlossaryButton onClick={() => setShowGlossary(true)}>Glossary</SC.GlossaryButton>
       <SC.Novel>
         {current.type === Type.Dialogue && (
           <SC.DialogueBox onClick={handleNext}>
@@ -112,7 +113,7 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
           </SC.DialogueBox>
         )}
         {current.type === Type.Fork && (
-          <SC.ForkOverlay>
+          <SC.Overlay>
             <SC.ForkDialogue>
               {current.options.caption && <SC.Caption>{current.options.caption}</SC.Caption>}
               {current.data.map((choice) => (
@@ -124,21 +125,16 @@ const Novel: FC<Props> = ({ initialScriptSet, initialScriptPosition = 0, initial
                 </button>
               ))}
             </SC.ForkDialogue>
-          </SC.ForkOverlay>
+          </SC.Overlay>
         )}
+        <Glossary show={showGlossary} onClose={() => setShowGlossary(false)} />
       </SC.Novel>
-
-      {showGlossary && (
-        <SC.DialogueBox>
-          {JSON.stringify(glossary())}
-        </SC.DialogueBox>
-      )}
 
       {Object.keys(modifierState).length > 0 && (
         <SC.Modifiers>
           <SC.Caption>Modifier</SC.Caption>
           {Object.entries(modifierState).map(([key, value]) => (
-            <span>
+            <span key={key}>
               <strong>{key}</strong>: {value}
             </span>
           ))}

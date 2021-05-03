@@ -8,10 +8,17 @@ interface AppProps {
 export const App = styled.div<AppProps>`
   height: 100vh;
   width: 100vw;
+  position: relative;
   ${props => props.backdrop && css`
     background: url(${testBackdrop}) no-repeat;
     background-size: cover;
   `}
+`
+
+export const GlossaryButton = styled.button`
+  position: absolute;
+  top: 20px;
+  left: 20px;
 `
 
 export const Novel = styled.div`
@@ -56,10 +63,9 @@ export const Modifiers = styled(RoundedFixedBox)`
   z-index: 1;
 `
 
-export const ForkOverlay = styled.div`
+export const Overlay = styled.div`
   position: fixed;
   z-index: 2;
-  background: rgba(0, 0, 0, 0.5);
   height: 100vh;
   width: 100vw;
   display: flex;
@@ -67,6 +73,40 @@ export const ForkOverlay = styled.div`
   justify-content: center;
 `
 
+export const Backdrop = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+`
+
 export const ForkDialogue = styled(RoundedFixedBox)`
   width: 400px;
+`
+
+export const GlossaryDialogue = styled(RoundedFixedBox)`
+  width: 900px;
+  height: 800px;
+  background: rgba(255, 255, 255, 0.8);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.8);
+  }
+`
+
+export const GlossaryLayout = styled.div`
+  display: grid;
+  grid-template-columns: 20% 79%;
+  grid-gap: 1%;
+`
+
+export const EntryList = styled.div`
+  display: flex;
+  flex-direction: column;
+`
+
+export const Entry = styled.span`
+  cursor: pointer;
 `

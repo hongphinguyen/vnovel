@@ -1,12 +1,12 @@
-const getMarkdownFile = async (path: string) => {
-  const data = await import(path)
-  return await fetch(data).then(res => res.text())
-}
-
-export const glossary = async () => [
+export const glossary = [
   {
     name: 'Pipeline',
-    alias: [],
-    text: await getMarkdownFile('./Pipeline.md')
+    aliases: [],
+    text: require('./Pipeline.md')
+  },
+  {
+    name: 'Iris',
+    aliases: [],
+    text: require('./Iris.md')
   }
 ]
